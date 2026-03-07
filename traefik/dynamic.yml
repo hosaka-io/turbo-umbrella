@@ -1,0 +1,174 @@
+http:
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        port: "443"
+        permanent: true
+
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "{{ env "TRAEFIK_DASHBOARD_AUTH" }}"
+
+    block-health:
+      ipAllowList:
+        sourceRange:
+          - "127.0.0.1/32"
+
+  routers:
+    http-catchall:
+      rule: "HostRegexp(`.+`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      priority: 1
+      service: api@internal
+
+    dashboard:
+      rule: "Host(`traefik.dev.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+          - main: dev.hosaka.io
+            sans:
+              - "*.dev.hosaka.io"
+      service: api@internal
+      middlewares:
+        - dashboard-auth
+
+    pgadmin:
+      rule: "Host(`pg.dev.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+          - main: dev.hosaka.io
+            sans:
+              - "*.dev.hosaka.io"
+      service: pgadmin
+
+    moods-prod:
+      rule: "Host(`moods.hosaka.io`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+      service: moods-prod
+
+    moods-prod-vpn:
+      rule: "Host(`moods.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+      service: moods-prod
+
+    moods-prod-health:
+      rule: "Host(`moods.hosaka.io`) && Path(`/health`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - block-health
+      priority: 200
+      service: moods-prod
+
+    moods-dev:
+      rule: "Host(`moods.dev.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+          - main: dev.hosaka.io
+            sans:
+              - "*.dev.hosaka.io"
+      service: moods-dev
+
+    openobserve:
+      rule: "Host(`observe.dev.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+          - main: dev.hosaka.io
+            sans:
+              - "*.dev.hosaka.io"
+      service: openobserve
+
+    wg-easy-public:
+      rule: "Host(`vpn.hosaka.io`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+      service: wg-easy
+
+    wg-easy:
+      rule: "Host(`vpn.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+      service: wg-easy
+
+  services:
+    pgadmin:
+      loadBalancer:
+        servers:
+          - url: "http://pgadmin:80"
+
+    moods-prod:
+      loadBalancer:
+        servers:
+          - url: "http://moods-prod:8000"
+
+    moods-dev:
+      loadBalancer:
+        servers:
+          - url: "http://moods-dev:8000"
+
+    openobserve:
+      loadBalancer:
+        servers:
+          - url: "http://openobserve:5080"
+
+    wg-easy:
+      loadBalancer:
+        servers:
+          - url: "http://wg-easy:51821"

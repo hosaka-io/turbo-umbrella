@@ -1,0 +1,32 @@
+api:
+  dashboard: true
+
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":444"
+  vpn:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      dnsChallenge:
+        provider: cloudflare
+      storage: /letsencrypt/acme.json
+
+tracing:
+  otlp:
+    http:
+      endpoint: http://openobserve:5080/api/3ANT9xNeShmoldeVfO1ZlOblRjw/v1/traces
+  serviceName: traefik
+  capturedRequestHeaders:
+    - X-Forwarded-For
+  capturedResponseHeaders:
+    - Content-Type
