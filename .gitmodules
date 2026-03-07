@@ -1,0 +1,6 @@
+[submodule "moods"]
+	path = moods
+	url = git@github.com:hosaka-io/moods.git
+[submodule "lanterna-magica"]
+	path = lanterna-magica
+	url = git@github.com:hosaka-io/lanterna-magica.git
