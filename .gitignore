@@ -73,6 +73,7 @@ android/web-build/
 build/
 celerybeat-schedule
 celerybeat.pid
+claude.json
 cover/
 coverage.xml
 cython_debug/

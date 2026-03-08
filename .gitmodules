@@ -4,3 +4,6 @@
 [submodule "lanterna-magica"]
 	path = lanterna-magica
 	url = git@github.com:hosaka-io/lanterna-magica.git
+[submodule "nix-docker/nix_home_manager"]
+	path = nix-docker/nix_home_manager
+	url = git@github.com:BrianEdwards85/nix_home_manager.git
