@@ -41,7 +41,8 @@ RUN nix run home-manager/master -- init --switch
 # Replace the default home-manager config with ours
 COPY --chown=dev:dev nix_home_manager/ /home/dev/.config/home-manager/
 COPY --chown=dev:dev claude.json /home/dev/.claude.json
-COPY --chown=dev:dev tokens.db /home/dev/.local/share/zellij/tokens.db
+COPY --chown=dev:dev /Users/bedwards/.local/share/zellij/tokens.db /home/dev/.local/share/zellij/tokens.db
+COPY --chown=dev:dev /Users/bedwards/.config/git/ignore /home/dev/.config/git/ignore
 
 # Init a fresh git repo so Nix flake fetcher doesn't follow stale submodule refs
 RUN cd /home/dev/.config/home-manager && rm -rf .git
@@ -53,7 +54,10 @@ RUN nix run home-manager/master -- switch --flake /home/dev/.config/home-manager
 RUN mkdir -p /home/dev/.npm-global \
     && npm config set prefix /home/dev/.npm-global \
     && npm install -g @anthropic-ai/claude-code \
-    && npm install -g @beads/bd
+    && npm install -g @beads/bd \
+    && claude install \
+    && git config --global user.name "Brian Edwards" \
+    && git config --global user.email "brian@edwardstx.us"
 ENV PATH="/home/dev/.npm-global/bin:${PATH}"
 
 COPY --chown=dev:dev entrypoint.sh /home/dev/entrypoint.sh

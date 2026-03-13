@@ -19,7 +19,29 @@ services:
     ports:
       - "127.0.0.1:9999:9999"
     volumes:
+      - /Users/bedwards/.config/home-manager:/home/dev/.config/home-manager
       - /Users/bedwards/claude-sandbox:/home/dev/workspace
-#    stdin_open: true
-#    tty: true
+      - /Users/bedwards/indeed:/home/dev/indeed
+    stdin_open: true
+    tty: true
     restart: unless-stopped
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: duefare
+      POSTGRES_PASSWORD: duefare
+      POSTGRES_DB: duefare
+    ports:
+      - "5433:5432"
+    volumes:
+      - /Users/bedwards/.docker_volumes/postgresql:/var/lib/postgresql/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: bedwards@edwardstx.us
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8433:80"
+    depends_on:
+      - postgres

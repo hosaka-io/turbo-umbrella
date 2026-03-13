@@ -3,6 +3,8 @@ __marimo__/
 __pycache__/
 __pypackages__/
 .abstra/
+.beads
+.idea
 .cache
 .coverage
 .coverage.*
@@ -116,3 +118,4 @@ web/resources/public/css/vendor/
 web/resources/public/js/
 web/src/moods/gql.cljs
 wheels/
+worktree-*
