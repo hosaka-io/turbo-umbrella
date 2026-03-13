@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  - job_name: keycloak
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - keycloak:8080
+
+remote_write:
+  - url: http://openobserve:5080/api/3ANT9xNeShmoldeVfO1ZlOblRjw/prometheus/api/v1/write
+    basic_auth:
+      username: ${ZO_ROOT_USER_EMAIL}
+      password: ${ZO_ROOT_USER_PASSWORD}

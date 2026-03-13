@@ -16,6 +16,15 @@ http:
         sourceRange:
           - "127.0.0.1/32"
 
+    oauth2-proxy:
+      forwardAuth:
+        address: "http://oauth2-proxy:4180/oauth2/auth"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "X-Auth-Request-User"
+          - "X-Auth-Request-Email"
+          - "X-Auth-Request-Access-Token"
+
   routers:
     http-catchall:
       rule: "HostRegexp(`.+`)"
@@ -42,6 +51,7 @@ http:
       service: api@internal
       middlewares:
         - dashboard-auth
+        - oauth2-proxy
 
     pgadmin:
       rule: "Host(`pg.dev.hosaka.io`)"
@@ -57,6 +67,8 @@ http:
             sans:
               - "*.dev.hosaka.io"
       service: pgadmin
+      middlewares:
+        - oauth2-proxy
 
     moods-prod:
       rule: "Host(`moods.hosaka.io`)"
@@ -69,6 +81,8 @@ http:
             sans:
               - "*.hosaka.io"
       service: moods-prod
+      middlewares:
+        - oauth2-proxy
 
     moods-prod-vpn:
       rule: "Host(`moods.hosaka.io`)"
@@ -81,6 +95,8 @@ http:
             sans:
               - "*.hosaka.io"
       service: moods-prod
+      middlewares:
+        - oauth2-proxy
 
     moods-prod-health:
       rule: "Host(`moods.hosaka.io`) && Path(`/health`)"
@@ -107,6 +123,8 @@ http:
             sans:
               - "*.dev.hosaka.io"
       service: moods-dev
+      middlewares:
+        - oauth2-proxy
 
     openobserve:
       rule: "Host(`observe.dev.hosaka.io`)"
@@ -122,6 +140,8 @@ http:
             sans:
               - "*.dev.hosaka.io"
       service: openobserve
+      middlewares:
+        - oauth2-proxy
 
     wg-easy-public:
       rule: "Host(`vpn.hosaka.io`)"
@@ -146,6 +166,47 @@ http:
             sans:
               - "*.hosaka.io"
       service: wg-easy
+
+    keycloak-public:
+      rule: "Host(`auth.hosaka.io`) && (PathPrefix(`/realms/`) || PathPrefix(`/resources/`) || PathPrefix(`/.well-known/`))"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+      service: keycloak
+      priority: 10
+
+    keycloak-oauth2-callback:
+      rule: "Host(`auth.hosaka.io`) && PathPrefix(`/oauth2/`)"
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+      service: oauth2-proxy
+      priority: 20
+
+    keycloak-vpn:
+      rule: "Host(`auth.dev.hosaka.io`)"
+      entryPoints:
+        - vpn
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: hosaka.io
+            sans:
+              - "*.hosaka.io"
+          - main: dev.hosaka.io
+            sans:
+              - "*.dev.hosaka.io"
+      service: keycloak
 
   services:
     pgadmin:
@@ -172,3 +233,13 @@ http:
       loadBalancer:
         servers:
           - url: "http://wg-easy:51821"
+
+    keycloak:
+      loadBalancer:
+        servers:
+          - url: "http://keycloak:8080"
+
+    oauth2-proxy:
+      loadBalancer:
+        servers:
+          - url: "http://oauth2-proxy:4180"
